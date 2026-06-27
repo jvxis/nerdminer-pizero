@@ -8,7 +8,7 @@ cd "$(dirname "$0")/.."
 # Pull settings out of config.ini using Python (robust ini parsing).
 eval "$(python3 - <<'PY'
 import configparser, shlex
-c = configparser.ConfigParser()
+c = configparser.ConfigParser(inline_comment_prefixes=(";",))
 c.read("config.ini")
 addr   = c.get("wallet", "address")
 worker = c.get("pool", "worker", fallback="pizero").strip()

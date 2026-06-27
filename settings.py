@@ -33,7 +33,8 @@ DEFAULTS = {
 
 class Settings:
     def __init__(self, path="config.ini"):
-        self._cp = configparser.ConfigParser()
+        # inline_comment_prefixes lets values carry trailing "; ..." comments
+        self._cp = configparser.ConfigParser(inline_comment_prefixes=(";",))
         # seed defaults
         self._cp.read_dict(DEFAULTS)
         if os.path.exists(path):
