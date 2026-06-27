@@ -16,7 +16,7 @@ Controls:
 import sys
 import time
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
 
 import st7789
 import screens
@@ -24,26 +24,6 @@ from settings import Settings
 from stats import MinerStats
 
 POLL_TICK = 0.05  # joystick sampling period (s)
-
-FONT_CANDIDATES = {
-    "bold": [
-        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
-        "/usr/share/fonts/truetype/freefont/FreeSansBold.ttf",
-    ],
-    "regular": [
-        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-        "/usr/share/fonts/truetype/freefont/FreeSans.ttf",
-    ],
-}
-
-
-def _load(kind, size):
-    for path in FONT_CANDIDATES[kind]:
-        try:
-            return ImageFont.truetype(path, size)
-        except OSError:
-            continue
-    return ImageFont.load_default()
 
 
 def pool_name(settings):
@@ -61,12 +41,7 @@ def main():
     disp.bl_DutyCycle(brightness)
     backlight_on = True
 
-    fonts = {
-        "title": _load("bold", 22),
-        "big": _load("bold", 34),
-        "body": _load("regular", 20),
-        "small": _load("regular", 14),
-    }
+    fonts = screens.Fonts()
 
     stats = MinerStats(settings)
     refresh_seconds = settings.getint("display", "refresh_seconds")
