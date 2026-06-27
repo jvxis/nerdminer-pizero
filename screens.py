@@ -107,12 +107,21 @@ def fmt_hashrate(hs):
 
 
 def fmt_suffix(value):
-    """Big number -> short suffix form (e.g. 83.1T)."""
+    """Big number -> short suffix form (e.g. 83.1T).
+
+    Difficulties below 1 (low-diff pools assign e.g. 0.1 to a tiny miner, so the
+    best share can read 0.12) keep 2-3 significant figures instead of rounding to
+    "0".
+    """
     for suffix, div in (("E", 1e18), ("P", 1e15), ("T", 1e12),
                         ("G", 1e9), ("M", 1e6), ("K", 1e3)):
         if value >= div:
             return f"{value / div:.1f}{suffix}"
-    return f"{value:.0f}"
+    if value >= 1:
+        return f"{value:.0f}"
+    if value > 0:
+        return f"{value:.3g}"
+    return "0"
 
 
 def fmt_uptime(seconds):
