@@ -19,10 +19,20 @@ sudo raspi-config nonint do_spi 0 || \
 
 echo ">> Building pooler/cpuminer for ARMv6 (this takes a few minutes on a Pi Zero)..."
 BUILD_DIR="${REPO_DIR}/.build/cpuminer"
-if [ ! -d "$BUILD_DIR" ]; then
+# Pin to a known commit so our patch always applies cleanly.
+CPUMINER_COMMIT=5f02105940edb61144c09a7eb960bba04a10d5b7
+SUGGEST_PATCH="${REPO_DIR}/patches/0001-cpuminer-suggest-difficulty.patch"
+if [ ! -d "$BUILD_DIR/.git" ]; then
     git clone https://github.com/pooler/cpuminer.git "$BUILD_DIR"
 fi
 cd "$BUILD_DIR"
+git checkout -q -- . 2>/dev/null || true   # drop any prior patch so re-runs stay clean
+git fetch -q origin 2>/dev/null || true
+git checkout -q "$CPUMINER_COMMIT"
+# Teach minerd to send mining.suggest_difficulty, so a low-hashrate Pi can ask the
+# pool for a difficulty it can actually meet (enabled via run-cpuminer.sh).
+git apply "$SUGGEST_PATCH"
+echo ">> Applied suggest_difficulty patch."
 ./autogen.sh
 # ARMv6 (Pi Zero / Zero W) has no NEON; plain VFP build.
 ./configure CFLAGS="-O3 -march=armv6 -mfpu=vfp -mfloat-abi=hard"

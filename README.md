@@ -40,6 +40,8 @@ The actual hashing is done by **pooler's [cpuminer](https://github.com/pooler/cp
 ```
 
 - **`cpuminer`** runs as a service, pointed at a solo pool with your BTC address.
+  `install.sh` builds it from source with a one-line patch (`patches/`) that lets it
+  request a low share difficulty (`mining.suggest_difficulty`) the Pi can meet.
 - **`dashboard.py`** reuses the vendored Waveshare driver (`st7789.py`,
   `lcd_hardware.py`) to draw NerdMiner-style screens and read inputs.
 - **`stats.py`** merges three sources, each degrading gracefully if offline.
@@ -66,9 +68,16 @@ nano config.ini                # set your wallet address + pool
 Edit `config.ini`:
 
 - `[wallet] address` — your bech32 BTC address (block reward destination).
-- `[pool]` — a **solo** pool. Defaults to `solo.ckpool.org:3333` (no signup, 1% fee).
-  For [public-pool.io](https://web.public-pool.io) set `url`, `stats_api` and
-  `stats_api_type = public-pool`.
+- `[pool]` — a **solo** pool. Defaults to `solo.ckpool.org:3333` (no signup, 1%
+  fee); [public-pool.io](https://web.public-pool.io) (zero fee) also works — set
+  `url`, `stats_api` and `stats_api_type = public-pool`. Don't use
+  `pool.nerdminers.org`: it whitelists NerdMiner/Bitaxe firmware by user-agent and
+  rejects cpuminer.
+- `[pool] suggest_difficulty` — the share difficulty the miner asks the pool for
+  (via `mining.suggest_difficulty`). Leave at `1`, the lowest pools accept: a Pi
+  Zero can't meet a pool's default (~10000–100000), so without this the dashboard's
+  share/lottery numbers would never move. Requires the **patched `minerd`** that
+  `install.sh` builds (a stock `minerd` doesn't send the request and ignores it).
 - `[display] refresh_seconds` — keep ≥ 1 so the single core isn't starved.
 
 ## Run
@@ -105,6 +114,14 @@ network difficulty), **Bitcoin** (price / height / difficulty), **System**
 ## Notes & tips
 
 - Single core: the miner runs at `Nice=10` so the UI stays responsive.
+- **Share difficulty drives the dashboard.** A pool's share difficulty sets how
+  often you submit a share. At ~0.25 MH/s a pool's default (ckpool ~10000,
+  public-pool ~100000) needs *years* per share, so the share/best-share screens
+  would sit at 0 forever. `install.sh` patches `minerd` to send
+  `mining.suggest_difficulty` so it can request difficulty `1` (set via
+  `[pool] suggest_difficulty`), bringing shares down to ~hours apart. Either way
+  your odds of actually *finding a block* are identical — only the on-screen stats
+  differ. Inspect the negotiated difficulty with `minerd ... -P` (protocol dump).
 - The Pi Zero W's WiFi is enough; no Ethernet/dongle needed.
 - ARMv6 has no NEON, so cpuminer uses the generic C path (the lower hashrate above).
 - Thermals are gentle on the original Zero; a heatsink is optional.

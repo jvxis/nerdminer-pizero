@@ -1,0 +1,27 @@
+diff --git a/cpu-miner.c b/cpu-miner.c
+--- a/cpu-miner.c
++++ b/cpu-miner.c
+@@ -1449,6 +1449,23 @@ static void *stratum_thread(void *userdata)
+ 				applog(LOG_ERR, "...retry after %d seconds", opt_fail_pause);
+ 				sleep(opt_fail_pause);
+ 			}
++			else {
++				/* pizero-lottery-miner: a Pi Zero W cannot meet a pool's default
++				 * share difficulty, so optionally ask the pool to lower it.
++				 * public-pool.io and similar honour mining.suggest_difficulty;
++				 * set CPUMINER_SUGGEST_DIFF in the environment to enable. */
++				const char *sd = getenv("CPUMINER_SUGGEST_DIFF");
++				if (sd && *sd && atof(sd) > 0) {
++					char sq[160];
++					snprintf(sq, sizeof(sq),
++					    "{\"id\": 4, \"method\": \"mining.suggest_difficulty\", \"params\": [%g]}",
++					    atof(sd));
++					if (stratum_send_line(&stratum, sq))
++						applog(LOG_INFO, "Suggested stratum difficulty %g", atof(sd));
++					else
++						applog(LOG_WARNING, "suggest_difficulty send failed");
++				}
++			}
+ 		}
+ 
+ 		if (stratum.job.job_id &&

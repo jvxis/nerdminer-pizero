@@ -21,6 +21,7 @@ vals = {
     "USER":    user,
     "PASS":    c.get("pool", "password", fallback="x"),
     "LOG":     c.get("miner", "log_file", fallback="/var/log/pizero-miner/cpuminer.log"),
+    "SUGGEST": c.get("pool", "suggest_difficulty", fallback="0").strip(),
 }
 for k, v in vals.items():
     print(f"{k}={shlex.quote(v)}")
@@ -29,6 +30,14 @@ PY
 
 mkdir -p "$(dirname "$LOG")"
 : > "$LOG"   # truncate on start so the log stays small
+
+# Ask the pool (via our patched minerd) for a share difficulty the Pi can meet.
+# 0 / empty = don't suggest (use the pool default). Needs the suggest_difficulty
+# patch baked in by install.sh; a stock minerd just ignores this env var.
+if [ -n "${SUGGEST:-}" ] && [ "$SUGGEST" != "0" ]; then
+    export CPUMINER_SUGGEST_DIFF="$SUGGEST"
+    echo "Suggesting stratum difficulty: $SUGGEST"
+fi
 
 echo "Starting cpuminer: $BINARY -a $ALGO -o $URL -u $USER -t $THREADS"
 exec "$BINARY" -a "$ALGO" -o "$URL" -u "$USER" -p "$PASS" -t "$THREADS" \
