@@ -192,11 +192,16 @@ def screen_lottery(img, draw, data, fonts, ctx):
     draw.text((MARGIN, 126), "network difficulty", font=fonts["small"], fill=DIM)
     _value(draw, fonts, "body", fmt_suffix(net), MARGIN, 144, WHITE)
 
-    if net > 0 and data["best_share"] > 0:
-        ratio = data["best_share"] / net
-        pct = min(ratio * 100, 100.0)
-        draw.text((MARGIN, 176), "block progress", font=fonts["small"], fill=DIM)
-        _value(draw, fonts, "body", f"{pct:.6f}%", MARGIN, 194, GREEN)
+    best = data["best_share"]
+    if net > 0 and best > 0:
+        # Odds that your best share would have been a block (best / network).
+        # As a % it's an unreadable 0.000000, so show it as "1 in N" lottery odds.
+        draw.text((MARGIN, 176), "block odds", font=fonts["small"], fill=DIM)
+        if best >= net:
+            _value(draw, fonts, "body", "YOU WON!!", MARGIN, 194, GREEN)
+        else:
+            _value(draw, fonts, "body", f"1 in {fmt_suffix(net / best)}",
+                   MARGIN, 194, GREEN)
     else:
         draw.text((MARGIN, 184), "waiting for first share...",
                   font=fonts["small"], fill=DIM)
