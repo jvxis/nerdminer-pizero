@@ -178,7 +178,10 @@ def screen_miner(img, draw, data, fonts, ctx):
     _value(draw, fonts, "body", f"{acc} ok / {rej} rej", MARGIN, 148,
            WHITE if rej == 0 else RED)
 
-    draw.text((MARGIN, 180), "pool hashrate", font=fonts["small"], fill=DIM)
+    # Your hashrate as the pool measures it (a cross-check against the local
+    # rate above) -- NOT the pool's grand total. A solo pool doesn't combine
+    # hashrate, and the stats API only reports your own workers anyway.
+    draw.text((MARGIN, 180), "pool-measured", font=fonts["small"], fill=DIM)
     _value(draw, fonts, "body", fmt_hashrate(data["pool_hashrate_hs"]),
            MARGIN, 198, WHITE)
 
