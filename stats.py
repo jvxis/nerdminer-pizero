@@ -74,12 +74,21 @@ def fetch_pool_stats(url, api_type, timeout=15):
         out["pool_hashrate_hs"] = _suffixed_to_hs(data.get("hashrate1m", "0"))
         out["workers"] = int(data.get("workers", 0) or 0)
     elif api_type == "public-pool":
-        # /api/client/<addr>: top-level bestDifficulty (best share for the address)
-        # plus workers[], each with hashRate in H/s.
+        # Handles both public-pool endpoints (bestDifficulty arrives as a string on
+        # one and a number on the other; float() copes with both):
+        #   /api/client/<addr>          -> the whole address (all your workers)
+        #   /api/client/<addr>/<worker> -> just one worker (e.g. only the Pi)
         out["best_share"] = float(data.get("bestDifficulty", 0) or 0)
-        out["workers"] = int(data.get("workersCount", 0) or 0)
-        out["pool_hashrate_hs"] = sum(
-            float(w.get("hashRate", 0) or 0) for w in (data.get("workers") or []))
+        if "workers" in data:
+            # address endpoint: workersCount + workers[] each with hashRate (H/s)
+            out["workers"] = int(data.get("workersCount", 0) or 0)
+            out["pool_hashrate_hs"] = sum(
+                float(w.get("hashRate", 0) or 0) for w in (data.get("workers") or []))
+        else:
+            # worker endpoint: hashrate/shares live under "accounting"
+            acc = data.get("accounting") or {}
+            out["pool_hashrate_hs"] = float(acc.get("hashRateLast10Minutes", 0) or 0)
+            out["workers"] = 1 if (out["pool_hashrate_hs"] or out["best_share"]) else 0
     return out
 
 

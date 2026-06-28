@@ -61,4 +61,9 @@ class Settings:
     @property
     def stats_api_url(self):
         tmpl = self.get("pool", "stats_api")
-        return tmpl.format(address=self.address) if tmpl else ""
+        if not tmpl:
+            return ""
+        # {worker} is optional (public-pool's per-worker endpoint uses it); passing
+        # it always is harmless for templates that only reference {address}.
+        worker = self.get("pool", "worker").strip()
+        return tmpl.format(address=self.address, worker=worker)

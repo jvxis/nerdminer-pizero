@@ -117,10 +117,10 @@ def fmt_suffix(value):
                         ("G", 1e9), ("M", 1e6), ("K", 1e3)):
         if value >= div:
             return f"{value / div:.1f}{suffix}"
-    if value >= 1:
+    if value >= 100:
         return f"{value:.0f}"
     if value > 0:
-        return f"{value:.3g}"
+        return f"{value:.3g}"   # 0 < v < 100 keeps decimals (e.g. 0.12, 1.87, 12.3)
     return "0"
 
 
