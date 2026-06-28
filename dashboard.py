@@ -77,6 +77,7 @@ def main():
             "pages": n_pages,
             "uptime": stats.uptime_seconds,
             "pool_name": pool_name(settings),
+            "worker": settings.get("pool", "worker").strip(),
         }
         screens.SCREENS[page](img, draw, data, fonts, ctx)
         disp.ShowImage(img)

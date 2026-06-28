@@ -253,16 +253,17 @@ def screen_system(img, draw, data, fonts, ctx):
         ("load (1m)", _sys_metric(lambda: f"{load():.2f}")),
         ("session", fmt_uptime(ctx["uptime"])),
         ("pool", ctx["pool_name"]),
+        ("worker", ctx.get("worker") or "-"),
     ]
     # Place the value column just past the widest label (+ a gap), measured
     # from the actual loaded face so it adapts to whatever font the Pi has.
     label_font = fonts["small"]
     val_x = MARGIN + max(_text_w(label_font, lbl) for lbl, _ in rows) + 16
-    y = 56
+    y = 52
     for label, value in rows:
         draw.text((MARGIN, y), label, font=label_font, fill=DIM)
         _value(draw, fonts, "body", str(value), val_x, y - 3, WHITE)
-        y += 34
+        y += 31
 
 
 SCREENS = [screen_miner, screen_lottery, screen_bitcoin, screen_system]
