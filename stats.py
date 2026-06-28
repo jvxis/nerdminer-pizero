@@ -85,9 +85,13 @@ def fetch_pool_stats(url, api_type, timeout=15):
             out["pool_hashrate_hs"] = sum(
                 float(w.get("hashRate", 0) or 0) for w in (data.get("workers") or []))
         else:
-            # worker endpoint: hashrate/shares live under "accounting"
+            # worker endpoint: hashrate + best share live under "accounting"
+            # (the top-level bestDifficulty stays 0 / lags on the hosted pool, so
+            # fall back to accounting.bestSubmissionDifficulty for the best share).
             acc = data.get("accounting") or {}
             out["pool_hashrate_hs"] = float(acc.get("hashRateLast10Minutes", 0) or 0)
+            out["best_share"] = max(out["best_share"],
+                                    float(acc.get("bestSubmissionDifficulty", 0) or 0))
             out["workers"] = 1 if (out["pool_hashrate_hs"] or out["best_share"]) else 0
     return out
 
